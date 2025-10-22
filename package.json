@@ -1,0 +1,37 @@
+{
+	"name": "@nan0web/changelog",
+	"version": "0.1.0",
+	"description": "Changelog parser for nan•web",
+	"main": "src/index.js",
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"clean": "rm -rf .cache/ && rm -rf dist/",
+		"clean:modules": "rm -rf node_modules",
+		"test": "node --test --test-timeout=9999 \"src/**/*.test.js\" | nan0test parse tap --fail",
+		"test:docs": "node --test src/README.md.js",
+		"test:release": "node --test \"releases/**/*.test.js\"",
+		"test:coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"src/**/*.test.js\" --test \"src/**/*.test.js\"",
+		"test:coverage:collect": "nan0test coverage",
+		"test:status": "nan0test status --hide-name",
+		"release": "nan0release publish",
+		"precommit": "npm test",
+		"prepush": "npm test",
+		"prepare": "husky",
+		"play": "node play/main.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"packageManager": "pnpm@10.11.0",
+	"devDependencies": {
+		"@nan0web/log": "workspace:*",
+		"@nan0web/markdown": "workspace:*",
+		"@nan0web/release": "workspace:*",
+		"@nan0web/test": "workspace:*",
+		"@nan0web/types": "workspace:*"
+	},
+	"peerDependencies": {
+		"@nan0web/types": "^1.0.0"
+	}
+}

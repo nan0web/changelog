@@ -1,5 +1,6 @@
 import { MDElement, MDHeading2 } from "@nan0web/markdown"
 import Section from "./Section.js"
+import Change from "./Change.js"
 
 /**
  * @typedef {string | object} VersionInput
@@ -9,6 +10,7 @@ import Section from "./Section.js"
  * @property {Date | string} [date=new Date()]
  * @property {MDElement[]} [children=[]]
  * @property {string} [content=""]
+ * @property {string} [ver=""]
  */
 
 export default class Version extends MDHeading2 {
@@ -20,6 +22,8 @@ export default class Version extends MDHeading2 {
 	patch
 	/** @type {Date} */
 	date
+	/** @type {Section[]} */
+	children
 
 	/**
 	 * @param {VersionInput} [input]
@@ -35,6 +39,7 @@ export default class Version extends MDHeading2 {
 			major = 0,
 			minor = 0,
 			patch = 0,
+			ver = "",
 			date = new Date(),
 			children = [],
 			content = "",
@@ -42,15 +47,28 @@ export default class Version extends MDHeading2 {
 		this.major = Number(major)
 		this.minor = Number(minor)
 		this.patch = Number(patch)
+		if (ver) {
+			const [x, y, z] = ver.split(".")
+			this.major = Number(x)
+			this.minor = Number(y)
+			this.patch = Number(z)
+		}
 		// Ensure stored date is UTC midnight to keep ISO string stable
 		if (date instanceof Date) {
 			this.date = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
 		} else {
-			this.date = new Date(date)
-			// Set to UTC midnight
-			this.date.setUTCHours(0, 0, 0, 0)
+			const dateString = String(date)
+			if (!dateString) {
+				this.date = new Date()
+			} else {
+				const parsedDate = new Date(dateString)
+				if (isNaN(parsedDate.getTime())) {
+					throw new RangeError("Invalid time value")
+				}
+				this.date = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate()))
+			}
 		}
-		this.children = children
+		this.children = children.map(c => Section.from(c))
 		if (content) {
 			this.setContent(content)
 		}
@@ -64,9 +82,19 @@ export default class Version extends MDHeading2 {
 	}
 
 	/**
-	 * @param {Section} section
+	 * @param {string | Section | MDElement} section
+	 * @returns {this}
 	 */
 	add(section) {
+		if ("string" === typeof section) {
+			const found = this.findSection(section)
+			if (found) {
+				return /** @type {this} */ (found)
+			}
+			const a = Section.from({ content: section })
+			super.add(a)
+			return /** @type {this} */ (this)
+		}
 		if (!(section instanceof Section)) {
 			throw new Error([
 				"Only Section instances can be added. But provided",
@@ -74,7 +102,12 @@ export default class Version extends MDHeading2 {
 				"object" === typeof section ? section.constructor.name : typeof section
 			].join(": "))
 		}
-		return super.add(section)
+		const found = this.findSection(section.content)
+		if (found) {
+			return /** @type {this} */ (found)
+		}
+		super.add(/** @type {MDElement} */(section))
+		return /** @type {this} */ (this)
 	}
 
 	/**
@@ -96,7 +129,37 @@ export default class Version extends MDHeading2 {
 		this.major = Number(major)
 		this.minor = Number(minor)
 		this.patch = Number(patch)
-		this.date = new Date(date)
+
+		const dateString = String(date || "")
+		if (!dateString) {
+			this.date = new Date()
+		} else {
+			const parsedDate = new Date(dateString)
+			if (isNaN(parsedDate.getTime())) {
+				throw new RangeError("Invalid time value")
+			}
+			// Set to UTC midnight
+			this.date = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate()))
+		}
+	}
+
+	findSection(name) {
+		const key = name.toUpperCase()
+		const content = Section[key] ?? ""
+		return this.children.find(section => content === section.content)
+	}
+
+	/**
+	 * @param {string} name One of "Added", "Changed", "Removed", "Fixed"
+	 * @returns {Section | undefined}
+	 */
+	getSection(name) {
+		let found = this.findSection(name)
+		if (!found) {
+			found = new Section({ content: name })
+			this.add(found)
+		}
+		return found
 	}
 
 	/**
@@ -152,14 +215,36 @@ export default class Version extends MDHeading2 {
 		} = input
 		const tab = "  "
 		this.content = this.getContent()
+
 		if (".md" == format) {
 			return super.toString({ indent, format })
 		}
+
 		const date = this.date.toISOString().slice(0, 10)
 		const title = `${tab.repeat(indent)}${skipPrefix ? "" : "v"}${this.ver} - ${date}`
+
 		if (".txt" == format) {
-			return title + "\n" + this.children.map(c => c.toString({ indent, format }))
+			let result = title
+
+			// Append child elements formatted as text
+			for (const child of this.children) {
+				if (child instanceof Section) {
+					result += '\n' + tab.repeat(indent + 1) + child.content
+
+					// Process section children (lists)
+					for (const list of child.children) {
+						for (const item of list.children) {
+							if (item instanceof Change) {
+								result += '\n' + tab.repeat(indent + 2) + '- ' + item.content
+							}
+						}
+					}
+				}
+			}
+
+			return result
 		}
+
 		return title
 	}
 

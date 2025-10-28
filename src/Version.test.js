@@ -36,22 +36,23 @@ describe('Version', () => {
 
 	it('should convert to string correctly', () => {
 		const version = new Version({ major: 1, minor: 2, patch: 3, date: "2025-01-01" })
-		version.add(new Section({ content: "Added", children: [new Change("New feature")] }))
-		assert.equal(version.toString(), [
-			"## [1.2.3] - 2025-01-01",
-			"### Added",
-			"- New feature",
-			""
-		].join("\n"))
+		const section = new Section({ content: "Added" })
+		section.add(new Change({ content: "New feature" }))
+		version.add(section)
+
+		assert.equal(version.toString(), "## [1.2.3] - 2025-01-01\n### Added\n- New feature\n\n")
 	})
-	it.todo("should convert to .txt correctly", () => {
+
+	it("should convert to .txt correctly", () => {
 		const version = new Version({ major: 1, minor: 2, patch: 3, date: "2025-01-01" })
-		version.add(new Section({ content: "Added", children: [new Change("New feature")] }))
+		const section = new Section({ content: "Added" })
+		section.add(new Change({ content: "New feature" }))
+		version.add(section)
+
 		assert.equal(version.toString({ format: ".txt" }), [
 			"v1.2.3 - 2025-01-01",
-			"Added",
-			"- New feature",
-			""
+			"  Added",
+			"    - New feature"
 		].join("\n"))
 	})
 })

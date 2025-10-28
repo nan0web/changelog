@@ -3,8 +3,8 @@
  */
 export default class Changelog extends Markdown {
     constructor(input?: {});
-    /** @type {Map<string, MDElement>} */
-    versions: Map<string, MDElement>;
+    /** @type {Map<string, Version>} */
+    versions: Map<string, Version>;
     title: MDHeading1;
     t: (str: any, repl: any) => any;
     /**
@@ -12,12 +12,6 @@ export default class Changelog extends Markdown {
      * @returns {string[]} - Array of version strings
      */
     getVersions(): string[];
-    /**
-     * Get changelog entry for specific version
-     * @param {string} version - Version to retrieve
-     * @returns {object|null} - Version entry with date and changes or null if not found
-     */
-    get(version: string): object | null;
     /**
      * Add a new version entry to the changelog.
      *
@@ -32,31 +26,32 @@ export default class Changelog extends Markdown {
      * @param {string} version - Version string (e.g. "1.3.0")
      * @param {object} [options] - Additional options.
      * @param {string} [options.date] - Date for the version entry (defaults to today).
+     * @returns {Version} - The created version object
      */
     addVersion(version: string, options?: {
         date?: string | undefined;
-    } | undefined): void;
+    } | undefined): Version;
     /**
-     * Add a Change instance to the appropriate position in the changelog
-     * @param {Change} change - The Change instance to add
+     * Get changelog entry for specific version
+     * @param {string} version - Version to retrieve
+     * @returns {Version|null} - Version object or null if not found
      */
-    addChange(change: Change): void;
+    getVersion(version: string): Version | null;
     /**
-     * Get the latest version from changelog (oldest entry in the file)
-     * @returns {string|null} - Latest version (prefixed with "v") or null if not found
+     * Get the latest version from changelog (last in file)
+     * @returns {Version | undefined} - Latest version or undefined if not found
      */
-    getLatestVersion(): string | null;
+    getLatestVersion(): Version | undefined;
     /**
      * Get the most recent version (newest entry in the file)
-     * @returns {string|null}
+     * @returns {Version | undefined}
      */
-    getRecentVersion(): string | null;
+    getRecentVersion(): Version | undefined;
     /**
      * Initialize a new changelog document with required heading elements
      */
     init(): void;
 }
 import Markdown from "@nan0web/markdown";
-import { MDElement } from "@nan0web/markdown";
+import Version from "./Version.js";
 import { MDHeading1 } from "@nan0web/markdown";
-import Change from "./Change.js";

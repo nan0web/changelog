@@ -1,8 +1,10 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
+import { MDHeading2, MDParagraph, MDHorizontalRule } from "@nan0web/markdown"
 import Changelog from './Changelog.js'
+import Version from './Version.js'
 import Change from './Change.js'
-import { MDHeading1, MDHeading2 } from "@nan0web/markdown"
+import Section from './Section.js'
 
 const sampleChangelog = `# Changelog
 All notable changes to this project will be documented in this file.
@@ -57,54 +59,28 @@ describe('Changelog', () => {
 	it.todo('should add new version entry properly', () => {
 		const changelog = new Changelog()
 		changelog.parse(sampleChangelog)
-		// Reset to a clean state to avoid confusion with existing elements
 
-		const initialLength = changelog.document.children.length
+		const addedVersion = changelog.addVersion("1.2.0", { date: "2025-01-01" })
 
-		// Create a real Change instance with content
-		const newChange = new Change({
-			major: 1,
-			minor: 2,
-			patch: 0,
-			date: '2025-01-01',
-			added: "- New features added", // Will be parsed into an MDList with 1 item
-		})
-
-		changelog.addChange(newChange)
-		const newLength = changelog.document.children.length
-
-		// The change adds these elements:
-		// - HR (---)
-		// - Empty paragraph
-		// - Version heading (## [1.3.0] - 2025-01-01)
-		// - Category heading (### Added)
-		// - List item (- New features added)
-		// So we expect +5 elements total.
-		assert.strictEqual(newLength, initialLength + 5)
+		// Verify version was added to versions map
+		assert.ok(changelog.versions.has('1.2.0'))
 
 		// Check that the added version appears at the correct location
-		const hrElement = changelog.document.children[0]
-		const paraElement = changelog.document.children[1]
-		const versionHeading = changelog.document.children[2]
-
-		assert.ok(hrElement.constructor.name.includes('MDHorizontalRule'))
-		assert.ok(paraElement instanceof MDParagraph)
-		assert.strictEqual(paraElement.content, "")
-		assert.ok(versionHeading instanceof MDHeading2)
-		assert.ok(versionHeading.content.includes('[1.3.0]'))
-		assert.ok(versionHeading.content.includes('2025-01-01'))
+		assert.ok(addedVersion instanceof Version)
+		assert.strictEqual(addedVersion.ver, '1.2.0')
+		// Check that the content includes the version string
+		assert.ok(addedVersion.content.includes('[1.2.0]'))
+		assert.ok(addedVersion.content.includes('2025-01-01'))
 	})
 
 	it('should retrieve a specific version correctly', () => {
 		const changelog = new Changelog()
 		changelog.parse(sampleChangelog)
-		const versionEntry = changelog.get('1.1.0')
+		const versionEntry = changelog.getVersion('1.1.0')
 
 		assert.ok(versionEntry)
-		assert.strictEqual(versionEntry.version, '1.1.0')
-		assert.strictEqual(versionEntry.date, '2024-01-02')
-		assert.ok(versionEntry.changes.changed)
-		assert.ok(versionEntry.changes.changed.length > 0)
+		assert.ok(versionEntry instanceof Version)
+		assert.strictEqual(versionEntry.ver, '1.1.0')
 	})
 
 	it('should get latest version (last in file)', () => {
@@ -112,6 +88,55 @@ describe('Changelog', () => {
 		changelog.parse(sampleChangelog)
 		const latestVersion = changelog.getLatestVersion()
 
-		assert.strictEqual(latestVersion, 'v1.0.0') // Last version entry in the sample file
+		assert.ok(latestVersion)
+		assert.strictEqual(latestVersion.ver, '1.0.0') // Last version entry in the sample file
+	})
+
+	it.todo('should add change to existing version', () => {
+		const changelog = new Changelog()
+		changelog.parse(sampleChangelog)
+		const version = changelog.addVersion("1.1.1", { date: "2025-01-01" })
+		version.add("added")
+		const section = version.getSection("added")
+		section.add("Additional feature")
+
+		assert.ok(version)
+
+		// Check that the version has the added section
+		assert.ok(section)
+		assert.ok(section.children.length > 0)
+
+		// Check that the document also reflects this change
+		let found = false
+		for (const element of changelog.document.children) {
+			if (element instanceof Version && element.ver === '1.1.1') {
+				const addedSection = element.getSection('Added')
+				if (addedSection && addedSection.toString().includes('Additional feature')) {
+					found = true
+					break
+				}
+			}
+		}
+		assert.ok(found, 'Change should be added to document')
+	})
+
+	it.todo('should create new version when adding change', () => {
+		const changelog = new Changelog()
+		changelog.parse(sampleChangelog)
+
+		changelog.addVersion(
+			new Version({ ver: "2.0.0" }).add(
+				new Section("added").add("Major new feature")
+			)
+		)
+
+		const version = changelog.getVersion('2.0.0')
+		assert.ok(version)
+
+		// Check that the version has the added section
+		const section = version.getSection('Added')
+		assert.ok(section)
+		assert.ok(section.children.length > 0)
+		assert.ok(section.toString().includes('Major new feature'))
 	})
 })

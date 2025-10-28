@@ -6,6 +6,7 @@
  * @property {Date | string} [date=new Date()]
  * @property {MDElement[]} [children=[]]
  * @property {string} [content=""]
+ * @property {string} [ver=""]
  */
 export default class Version extends MDHeading2 {
     /**
@@ -26,15 +27,17 @@ export default class Version extends MDHeading2 {
     patch: number;
     /** @type {Date} */
     date: Date;
-    children: any;
+    /** @type {Section[]} */
+    children: Section[];
     /**
      * @returns {string}
      */
     get ver(): string;
     /**
-     * @param {Section} section
+     * @param {string | Section | MDElement} section
+     * @returns {this}
      */
-    add(section: Section): this;
+    add(section: string | Section | MDElement): this;
     /**
      * @returns {string}
      */
@@ -43,6 +46,12 @@ export default class Version extends MDHeading2 {
      * @param {string} input
      */
     setContent(input: string): void;
+    findSection(name: any): Section | undefined;
+    /**
+     * @param {string} name One of "Added", "Changed", "Removed", "Fixed"
+     * @returns {Section | undefined}
+     */
+    getSection(name: string): Section | undefined;
     /**
      * Checks if version is higher than other version
      * @param {VersionInput} version
@@ -77,3 +86,4 @@ export default class Version extends MDHeading2 {
 export type VersionInput = string | object;
 import { MDHeading2 } from "@nan0web/markdown";
 import Section from "./Section.js";
+import { MDElement } from "@nan0web/markdown";

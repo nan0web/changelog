@@ -1,18 +1,22 @@
-/** @typedef {import("@nan0web/markdown/types/MDElement").MDElementProps} MDElementProps */
 /**
- * @typedef {Object} ChangeProps
- * @property {Date | null} date
+ * @typedef {object} ChangeData
+ * @property {string} [content]
  */
 export default class Change extends MDListItem {
     /**
-     * @param {MDElementProps & ChangeProps} props
+     * Creates Change from input
+     * @param {ChangeData | string} input
+     * @returns {Change}
      */
-    constructor(props: MDElementProps & ChangeProps);
-    /** @type {Date | null} */
-    date: Date | null;
+    static from(input: ChangeData | string): Change;
+    /**
+     * Creates Change from markdown string
+     * @param {string} content
+     * @returns {Change}
+     */
+    static fromElementString(content: string): Change;
 }
-export type MDElementProps = import("@nan0web/markdown/types/MDElement").MDElementProps;
-export type ChangeProps = {
-    date: Date | null;
+export type ChangeData = {
+    content?: string | undefined;
 };
 import { MDListItem } from "@nan0web/markdown";

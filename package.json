@@ -1,9 +1,15 @@
 {
 	"name": "@nan0web/changelog",
 	"version": "0.1.0",
-	"description": "Changelog parser for nan•web",
-	"main": "src/index.js",
+	"description": "A simple, typed, and tested API for working with CHANGELOG.md files",
 	"type": "module",
+	"main": "src/index.js",
+	"types": "./types/index.d.ts",
+	"files": [
+		"src/**/*.js",
+		"!src/**/*.test.js",
+		"types/**/*.d.ts"
+	],
 	"scripts": {
 		"build": "tsc",
 		"clean": "rm -rf .cache/ && rm -rf dist/",
@@ -20,8 +26,12 @@
 		"prepare": "husky",
 		"play": "node play/main.js"
 	},
-	"keywords": [],
-	"author": "",
+	"keywords": [
+		"changelog",
+		"markdown",
+		"nan0web"
+	],
+	"author": "ЯRаСлав YaRaSLove <support@yaro.page>",
 	"license": "ISC",
 	"packageManager": "pnpm@10.11.0",
 	"devDependencies": {
@@ -29,9 +39,11 @@
 		"@nan0web/markdown": "workspace:*",
 		"@nan0web/release": "workspace:*",
 		"@nan0web/test": "workspace:*",
-		"@nan0web/types": "workspace:*"
+		"@nan0web/types": "workspace:*",
+		"@nan0web/ui-cli": "^1.0.0"
 	},
 	"peerDependencies": {
+		"@nan0web/markdown": "^1.0.2",
 		"@nan0web/types": "^1.0.0"
 	}
 }

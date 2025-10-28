@@ -1,6 +1,6 @@
 {
 	"name": "@nan0web/changelog",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "A simple, typed, and tested API for working with CHANGELOG.md files",
 	"type": "module",
 	"main": "src/index.js",

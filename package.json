@@ -20,6 +20,7 @@
 		"test:coverage": "node --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"src/**/*.test.js\" --test \"src/**/*.test.js\"",
 		"test:coverage:collect": "nan0test coverage",
 		"test:status": "nan0test status --hide-name",
+		"test:all": "npm run test && npm run test:docs && npm run test:release && npm run build",
 		"release": "nan0release publish",
 		"precommit": "npm test",
 		"prepush": "npm test",
